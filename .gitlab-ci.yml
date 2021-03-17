@@ -1,0 +1,28 @@
+image: php:latest
+
+before_script:
+  - apt-get update -yqq
+  - apt-get install git zip unzip -qq
+  - rm composer.* vendor/ -Rf
+  - curl -sS https://getcomposer.org/installer | php
+  - php composer.phar require phpunit/phpunit
+  - echo "memory_limit = 512M" >> /usr/local/etc/php/conf.d/custom.ini
+
+stages:
+  - check_syntax
+  - unit_tests
+
+job_lint:
+  stage: check_syntax
+  script:
+    - chmod +x ./scripts -Rf
+    - ./scripts/lint.sh App/
+  only:
+    - master
+
+job_phpunit:
+  stage: unit_tests
+  script:
+    - vendor/bin/phpunit --bootstrap init.php App/Tests
+  only:
+    - master
